@@ -49,6 +49,60 @@ class User:
         cursor.execute(insert_into_query, data)
         conn.commit()
 
+
+
+    @classmethod
+    def get_users(cls) -> List['User']:
+        select_query = '''
+        SELECT *
+        FROM users;
+        '''
+
+        cursor.execute(select_query)
+        rows = cursor.fetchall()
+        users = [cls(full_name=row[0], password=row[1], email=row[2]) for row in rows]
+        return users
+
+    @classmethod
+    def get_user(cls, user_id: int) -> Optional['User']:
+        select_query = '''
+        SELECT *
+        FROM users
+        WHERE id = %s;
+        '''
+
+        cursor.execute(select_query, (user_id,))
+        row = cursor.fetchone()
+        if row:
+            return cls(full_name=row[0], password=row[1], email=row[2])
+        else:
+            return None
+
+    def delete(self):
+        delete_query = '''
+        DELETE FROM users
+        WHERE id = %s;
+        '''
+
+        cursor.execute(delete_query, (self.id,))
+        conn.commit()
+
+    def update(self, full_name: Optional[str] = None,
+               password: Optional[str] = None,
+               email: Optional[str] = None):
+        update_query = '''
+        UPDATE users
+        SET full_name = (%s, full_name),
+            password = (%s, password),
+            email = (%s, email)
+        WHERE id = %s;
+        '''
+
+        data = (full_name, password, email, self.id)
+        cursor.execute(update_query, data)
+        conn.commit()
+
+
 john = User('John Doe', 'john123', 'johndoe@gmail.com')
 john.save()
 
